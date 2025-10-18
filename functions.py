@@ -32,9 +32,6 @@ def hashing(password, hfile):
     result = result.hexdigest()
     with hfile.open(mode = "w") as file:
         file.write(result)
-    key = Fernet.generate_key()
-    cipher = Fernet(key)
-    return result, cipher
 
 def check_hash(password, hfile):
     result = hashlib.sha256(password.encode())
@@ -47,7 +44,7 @@ def check_hash(password, hfile):
         return False
     
 # decryption
-def decrypt_password(pass_encrypt):
+def decrypt_password(pass_encrypt, cipher):
     encrypted_bytes = base64.b64decode(pass_encrypt)
     decrypted = cipher.decrypt(encrypted_bytes).decode()
     return decrypted
@@ -61,13 +58,7 @@ def decrypted_form_json(jfile, domain):
             if encrypted_pass:
                 return decrypt_password(encrypted_pass)
     raise ValueError(f"No password for domain: {domain}")
- 
-key = Fernet.generate_key()
-cipher = Fernet(key)
-hash_file = Path("hash.txt")
-pass_file = Path("pass.json")
-file_exist(hash_file)
-file_exist(pass_file)
+
 
 # p = password.Password("Instagram", "http://instagram.com", cipher)
 # add_json(pass_file, p.formating())
