@@ -2,8 +2,31 @@ from pathlib import Path
 import password
 import hashlib
 from cryptography.fernet import Fernet
+from cryptography.fernet import InvalidToken
 import json
 import base64
+import os
+
+#key
+def generate_key(file: Path):
+    key = Fernet.generate_key()
+    with open(file, "wb") as kfile:
+        kfile.write(key)
+    
+    try:
+        os.chmod(file, 0o600)
+    except Exception:
+        pass
+
+def load_key(file: Path) -> bytes:
+    if not file.exists():
+        raise FileNotFoundError(f"Key file not found: {file}")
+    
+    key = file.read_bytes()
+    if not isinstance(key, (bytes, bytearray)) or len(key) != 44:
+        raise ValueError("Invalid Fernet key (unexpected length or format)")
+    
+    return bytes(key)
 
 # file management
 def file_exist(file):
@@ -45,18 +68,21 @@ def check_hash(password, hfile):
     
 # decryption
 def decrypt_password(pass_encrypt, cipher):
-    encrypted_bytes = base64.b64decode(pass_encrypt)
-    decrypted = cipher.decrypt(encrypted_bytes).decode()
-    return decrypted
+    try:
+        encrypted_bytes = base64.b64decode(pass_encrypt)
+        decrypted = cipher.decrypt(encrypted_bytes).decode("utf-8")
+        return decrypted
+    except (InvalidToken, ValueError, base64.binascii.Error) as e:
+        raise ValueError("Nie można odszyfrować hasła: " + str(e))
 
-def decrypted_form_json(jfile, domain):
+def decrypted_form_json(jfile, domain, cipher):
     with jfile.open(mode = "r", encoding = "utf-8") as file:
         data = json.load(file)
     for entry in data:
         if entry.get("domain") == domain:
             encrypted_pass = entry.get("encrypted")
             if encrypted_pass:
-                return decrypt_password(encrypted_pass)
+                return decrypt_password(encrypted_pass, cipher)
     raise ValueError(f"No password for domain: {domain}")
 
 
