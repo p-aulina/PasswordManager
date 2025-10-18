@@ -1,35 +1,15 @@
 from pathlib import Path
+import password
 import random
 import string
 import hashlib
 from cryptography.fernet import Fernet
+import json
 
 # file management
 def file_exist(file):
     if not file.exists():
         file.touch()
-
-# generating password
-def generate_password():
-    length = 18
-    charList = string.ascii_letters + string.digits + string.punctuation
-    password = []
-    for i in range(length):
-        password.append(random.choice(charList))
-    
-    return password
-
-# encryption
-key = Fernet.generate_key()
-cipher = Fernet(key)
-def encrypt_password(password):
-    encrypted = cipher.encrypt(password.encode())
-    return encrypted
-
-# decryption
-def decrypt_password(pass_encrypt):
-    decrypted = cipher.decrypt(pass_encrypt).decode()
-    return decrypted
 
 # hashing
 def hashing(password, hfile):
@@ -37,7 +17,9 @@ def hashing(password, hfile):
     result = result.hexdigest()
     with hfile.open(mode = "w") as file:
         file.write(result)
-    return result
+    key = Fernet.generate_key()
+    cipher = Fernet(key)
+    return result, cipher
 
 def check_hash(password, hfile):
     result = hashlib.sha256(password.encode())
@@ -48,12 +30,20 @@ def check_hash(password, hfile):
         return True
     else:
         return False
+    
+# decryption
+def decrypt_password(pass_encrypt):
+    decrypted = cipher.decrypt(pass_encrypt).decode()
+    return decrypted
 
-
+key = Fernet.generate_key()
+cipher = Fernet(key)
 hash_file = Path("hash.txt")
-pass_file = Path("pass.txt")
+pass_file = Path("pass.json")
 file_exist(hash_file)
 file_exist(pass_file)
 
-print(encrypt_password("abc"))
-print(decrypt_password(encrypt_password("abc")))
+password = password.Password("gmail.com", "https://gmail.com", cipher)
+print(password.gen_password, "\n")
+print(password.encrypted, "\n")
+print(decrypt_password(password.encrypted))
