@@ -1,5 +1,6 @@
 import random
 import string
+import base64
 
 class Password:
     length = 18
@@ -16,12 +17,22 @@ class Password:
         password = []
         for i in range(self.length):
             password.append(random.choice(charList))
+        print("".join(password))
         return "".join(password)
     
     # encryption
     def encrypt_password(self, password, cipher):
         encrypted = cipher.encrypt(password.encode())
-        return encrypted
+        # print("Encrypted \n", encrypted)
+        return base64.b64encode(encrypted).decode("utf-8")
+    
+    # .json data format
+    def formating(self):
+        return {
+            "domain" : self.domain,
+            "url" : self.url,
+            "encrypted" : self.encrypted
+        }
     
 
     
