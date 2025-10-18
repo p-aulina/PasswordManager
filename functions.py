@@ -19,7 +19,17 @@ def generate_password():
     
     return password
 
-# 
+# encryption
+key = Fernet.generate_key()
+cipher = Fernet(key)
+def encrypt_password(password):
+    encrypted = cipher.encrypt(password.encode())
+    return encrypted
+
+# decryption
+def decrypt_password(pass_encrypt):
+    decrypted = cipher.decrypt(pass_encrypt).decode()
+    return decrypted
 
 # hashing
 def hashing(password, hfile):
@@ -41,7 +51,9 @@ def check_hash(password, hfile):
 
 
 hash_file = Path("hash.txt")
+pass_file = Path("pass.txt")
 file_exist(hash_file)
-print(hashing("abc", hash_file))
-p = input()
-print(check_hash(p, hash_file))
+file_exist(pass_file)
+
+print(encrypt_password("abc"))
+print(decrypt_password(encrypt_password("abc")))
