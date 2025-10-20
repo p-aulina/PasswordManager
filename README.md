@@ -10,10 +10,10 @@ Password manager with a simple graphical interface, built using Python.Easily st
 - data stored securely in a local file
 
 ## Tech Stack
-- language: Python
-- GUI library: Qt6
-- hashing (master password): hashlib (SHA2-256)
-- encryption (other passwords): cryptography (Fernet)
+- language: Python,
+- GUI library: Qt6,
+- hashing (master password): hashlib (SHA2-256),
+- encryption (other passwords): cryptography (Fernet),
 - storage - local JSON file
 
 ## Usage
@@ -27,4 +27,4 @@ All data is encrypted and saved locally.
 ## Important notes
 - there is no method to recover your master password,
 - this password manager is not synchronised with any cloud - it only works locally,
-- intended for personal use.
+- intended for personal use
