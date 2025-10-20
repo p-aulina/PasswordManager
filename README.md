@@ -1,5 +1,5 @@
 # Simple Password Manager
-Password manager with a simple graphical interface, built using Python.Easily store, retrieve, and manage your passwords locally.
+Password manager with a simple graphical interface, built using Python. Easily store, retrieve, and manage your passwords locally.
 
 ## Features
 - siple GUI,
