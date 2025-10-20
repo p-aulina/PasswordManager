@@ -49,6 +49,29 @@ def add_json(jfile, password):
     data.append(password)
     jfile.write_text(json.dumps(data, indent = 4, ensure_ascii = False), encoding = "utf-8")
 
+def delete_from_json(jfile: Path, domain_to_delete: str, username_to_delete: str):
+    if not jfile.exists() or jfile.stat().st_size == 0:
+        return False
+
+    try:
+        with open(jfile, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        # Filtrujemy dane — zostawiamy tylko te, które NIE pasują do podanego domain+username
+        new_data = [
+            entry for entry in data
+            if not (entry["domain"] == domain_to_delete and entry["username"] == username_to_delete)
+        ]
+
+        with open(jfile, "w", encoding="utf-8") as file:
+            json.dump(new_data, file, indent=4, ensure_ascii=False)
+
+        return True
+    except Exception as e:
+        print("Error deleting password:", e)
+        return False
+
+
 # hashing
 def hashing(password, hfile):
     result = hashlib.sha256(password.encode())

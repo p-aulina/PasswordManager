@@ -133,9 +133,44 @@ class MainWindow(QMainWindow):
 
         try:
             password = functions.decrypted_form_json(Path("pass.json"), domain, self.cipher)
-            QMessageBox.information(self, "Decrypted password", f"Password for {domain}:\n\n{password}")
+            dialog = ShowPasswordDialog(domain, password, self)
+            dialog.exec()
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Could not decrypt password:\n{e}")
+
+
+
+class ShowPasswordDialog(QDialog):
+    def __init__(self, domain: str, password: str, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(f"Password for {domain}")
+        self.setFixedSize(400, 150)
+
+        self.password = password
+
+        layout = QVBoxLayout()
+
+        label = QLabel(f"Password for {domain}:")
+        layout.addWidget(label)
+
+        self.password_field = QLineEdit()
+        self.password_field.setText(self.password)
+        self.password_field.setReadOnly(True)
+        layout.addWidget(self.password_field)
+
+        copy_button = QPushButton("Copy to clipboard")
+        copy_button.clicked.connect(self.copy_to_clipboard)
+        layout.addWidget(copy_button)
+
+        close_button = QPushButton("Close")
+        close_button.clicked.connect(self.accept)
+        layout.addWidget(close_button)
+
+        self.setLayout(layout)
+
+    def copy_to_clipboard(self):
+        QApplication.clipboard().setText(self.password_field.text())
+
 
 class LoginDialog(QDialog):
     def check_password(self):
