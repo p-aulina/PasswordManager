@@ -108,6 +108,15 @@ def decrypted_form_json(jfile, domain, cipher):
                 return decrypt_password(encrypted_pass, cipher)
     raise ValueError(f"No password for domain: {domain}")
 
+def get_url(jfile, domain):
+    with jfile.open(mode = "r", encoding = "utf-8") as file:
+        data = json.load(file)
+    for entry in data:
+        if entry.get("domain") == domain:
+            url = entry.get("url")
+            return url
+    raise ValueError(f"No url for domain: {domain}")
+
 
 # p = password.Password("Instagram", "http://instagram.com", cipher)
 # add_json(pass_file, p.formating())

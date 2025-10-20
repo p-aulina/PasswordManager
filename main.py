@@ -9,7 +9,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout, 
     QPushButton,
     QListWidget,
-    QListWidgetItem
+    QListWidgetItem,
+    QHBoxLayout
     )
 import sys
 import json
@@ -77,7 +78,6 @@ class AddPasswordDialog(QDialog):
 
         self.accept()
 
-    
 
 class MainWindow(QMainWindow):
     def __init__(self, cipher):
@@ -126,6 +126,20 @@ class MainWindow(QMainWindow):
                 print("Error loading JSON file:", e)
         else:
             self.list_widget.addItem("No passwords saved")
+    
+    def delete_password(self, domain):
+        jfile = Path("pass.json")
+        if jfile.exists():
+            try:
+                with open(jfile, "r", encoding="utf-8") as file:
+                    data = json.load(file)
+                # Usuwamy wpis o podanej domenie
+                data = [entry for entry in data if entry['domain'] != domain]
+                with open(jfile, "w", encoding="utf-8") as file:
+                    json.dump(data, file, indent=4)
+                self.load_passwords()
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Could not delete password:\n{e}")
 
     def show_password_for_item(self, item: QListWidgetItem):
         text = item.text()
@@ -133,7 +147,8 @@ class MainWindow(QMainWindow):
 
         try:
             password = functions.decrypted_form_json(Path("pass.json"), domain, self.cipher)
-            dialog = ShowPasswordDialog(domain, password, self)
+            url = functions.get_url(Path("pass.json"), domain)
+            dialog = ShowPasswordDialog(domain, url, password, self.delete_password, self)
             dialog.exec()
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Could not decrypt password:\n{e}")
@@ -141,16 +156,18 @@ class MainWindow(QMainWindow):
 
 
 class ShowPasswordDialog(QDialog):
-    def __init__(self, domain: str, password: str, parent=None):
+    def __init__(self, domain: str, url: str, password: str, delete_callback, parent=None):
         super().__init__(parent)
         self.setWindowTitle(f"Password for {domain}")
-        self.setFixedSize(400, 150)
+        self.setFixedSize(400, 200)
 
         self.password = password
+        self.domain = domain
+        self.delete_callback = delete_callback
 
         layout = QVBoxLayout()
 
-        label = QLabel(f"Password for {domain}:")
+        label = QLabel(f"Password for {url}:")
         layout.addWidget(label)
 
         self.password_field = QLineEdit()
@@ -162,6 +179,10 @@ class ShowPasswordDialog(QDialog):
         copy_button.clicked.connect(self.copy_to_clipboard)
         layout.addWidget(copy_button)
 
+        delete_button = QPushButton("Delete password")
+        delete_button.clicked.connect(self.delete_password)
+        layout.addWidget(delete_button)
+
         close_button = QPushButton("Close")
         close_button.clicked.connect(self.accept)
         layout.addWidget(close_button)
@@ -170,6 +191,41 @@ class ShowPasswordDialog(QDialog):
 
     def copy_to_clipboard(self):
         QApplication.clipboard().setText(self.password_field.text())
+
+    def delete_password(self):
+        reply = QMessageBox.question(self, "Confirm delete",
+                                     f"Are you sure you want to delete password for {self.domain}?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
+            if callable(self.delete_callback):
+                self.delete_callback(self.domain)
+            self.accept()
+
+class PasswordItemWidget(QWidget):
+    def __init__(self, domain, username, delete_callback, parent=None):
+        super().__init__(parent)
+        self.domain = domain
+        self.username = username
+        self.delete_callback = delete_callback
+
+        layout = QHBoxLayout()
+        layout.setContentsMargins(5, 2, 5, 2)
+
+        self.label = QLabel(f"{domain} - {username}")
+        self.delete_button = QPushButton("Usuń")
+        self.delete_button.setFixedWidth(60)
+
+        self.delete_button.clicked.connect(self.handle_delete)
+
+        layout.addWidget(self.label)
+        layout.addStretch()
+        layout.addWidget(self.delete_button)
+
+        self.setLayout(layout)
+
+    def handle_delete(self):
+        if callable(self.delete_callback):
+            self.delete_callback(self.domain, self.username)
 
 
 class LoginDialog(QDialog):
