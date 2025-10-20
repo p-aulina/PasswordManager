@@ -1,3 +1,4 @@
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QApplication, 
     QMainWindow,
@@ -299,6 +300,7 @@ def main():
     functions.file_exist(pass_file)
 
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon("lock.png"))
 
     if hash_file.stat().st_size == 0:
         set_pass = SetMainPasswordDialog()
