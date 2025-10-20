@@ -13,7 +13,7 @@ Password manager with a simple graphical interface, built using Python.Easily st
 - language: Python,
 - GUI library: Qt6,
 - hashing (master password): hashlib (SHA2-256),
-- encryption (other passwords): cryptography (Fernet),
+- encryption (other data): cryptography (Fernet),
 - storage - local JSON file
 
 ## Usage
